@@ -28,14 +28,12 @@ export default function Index() {
 
   const handleSpotPress = useCallback((spot: ParkingSpot) => {
     setSelectedSpot(spot);
-    console.log("handleSpotPress", spot);
     setIsReporting(false);
     bottomSheetRef.current?.expand(); // Open the sheet when a spot is clicked
   }, []);
 
   const handleMapPress = useCallback(() => {
     setSelectedSpot(null);
-    console.log("handleMapPress");
     setIsReporting(false);
     bottomSheetRef.current?.collapse(); // Minimize the sheet when map is clicked
   }, []);
