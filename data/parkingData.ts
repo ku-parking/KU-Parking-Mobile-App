@@ -1,51 +1,51 @@
+import { Config } from "../config";
+
 export type ParkingSpot = {
     id: number;
     name: string;
     latitude: number;
     longitude: number;
     availability: number;
+    capacity: number;
     color: string;
 };
 
-export const parkingSpots: ParkingSpot[] = [
+export const getSpotColor = (availability: number, capacity: number): string => {
+    if (capacity <= 0) return "#e74c3c"; // Red fallback
+    const ratio = availability / capacity;
+    if (ratio >= Config.colorThresholds.green) return "#2ecc71"; // Green (Most available)
+    if (ratio >= Config.colorThresholds.yellow) return "#f1c40f"; // Yellow (Middle)
+    return "#e74c3c"; // Red (Most unavailable)
+};
+
+const rawSpots = [
     {
         id: 1,
         name: "Sc KU Food Court",
-        latitude: 13.8465,
-        longitude: 100.5690,
-        availability: 24,
-        color: "#2ecc71", // Green
+        latitude: 13.845802,
+        longitude: 100.570707,
+        availability: 40,
+        capacity: 40,
     },
     {
         id: 2,
         name: "Thai Post Office Kasetsart University",
-        latitude: 13.8480,
-        longitude: 100.5695,
+        latitude: 13.847130,
+        longitude: 100.568588,
         availability: 7,
-        color: "#f1c40f", // Yellow
+        capacity: 35,
     },
     {
         id: 3,
         name: "Kasetsart University COOP",
-        latitude: 13.8455,
-        longitude: 100.5675,
+        latitude: 13.844964,
+        longitude: 100.567642,
         availability: 0,
-        color: "#e74c3c", // Red
-    },
-    {
-        id: 4,
-        name: "Engineering Building",
-        latitude: 13.8470,
-        longitude: 100.5700,
-        availability: 12,
-        color: "#2ecc71",
-    },
-    {
-        id: 5,
-        name: "Main Auditorium",
-        latitude: 13.8440,
-        longitude: 100.5680,
-        availability: 5,
-        color: "#f1c40f",
+        capacity: 20,
     },
 ];
+
+export const parkingSpots: ParkingSpot[] = rawSpots.map(spot => ({
+    ...spot,
+    color: getSpotColor(spot.availability, spot.capacity)
+}));
