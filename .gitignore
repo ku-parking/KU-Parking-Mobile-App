@@ -45,3 +45,6 @@ app-example
 /android
 
 typescript_errors.txt
+
+jest_output.txt
+jest_out.txt
