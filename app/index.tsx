@@ -1,8 +1,9 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, Linking, Platform } from "react-native";
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { StyleSheet, View, Linking, Platform, Alert } from "react-native";
 import ParkingMap from "../components/ParkingMap";
-import { ParkingSpot, parkingSpots } from "../data/parkingData";
+import { ParkingSpot, parkingSpots, fetchParkingSpots } from "../data/parkingData";
+import { Config } from "../config";
 import SearchBar from "../components/SearchBar";
 import SpotList from "../components/SpotList";
 import SpotDetail from "../components/SpotDetail";
@@ -12,6 +13,7 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpot, setSelectedSpot] = useState<ParkingSpot | null>(null);
   const [isReporting, setIsReporting] = useState(false);
+  const [spots, setSpots] = useState<ParkingSpot[]>(parkingSpots);
 
   // ref
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -19,12 +21,36 @@ export default function Index() {
   // variables
   const snapPoints = useMemo(() => ['15%', '45%'], []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadParkingSpots = async () => {
+      try {
+        const remoteSpots = await fetchParkingSpots();
+        if (isMounted) {
+          setSpots(remoteSpots);
+        }
+      } catch (error) {
+        console.warn('Using fallback parking data:', error);
+        Alert.alert(
+          'Offline data',
+          `Unable to load live parking data from ${Config.apiBaseUrl}, showing fallback spots.`
+        );
+      }
+    };
+
+    loadParkingSpots();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const filteredSpots = useMemo(() => {
-    if (!searchQuery) return parkingSpots;
-    return parkingSpots.filter(spot =>
+    if (!searchQuery) return spots;
+    return spots.filter(spot =>
       spot.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, spots]);
 
   const handleSpotPress = useCallback((spot: ParkingSpot) => {
     setSelectedSpot(spot);
