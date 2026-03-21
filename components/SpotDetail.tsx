@@ -9,6 +9,24 @@ interface SpotDetailProps {
   onReportIssue: () => void;
 }
 
+const formatLastUpdated = (updatedAt?: string | null): string => {
+  const rawValue = typeof updatedAt === 'string' ? updatedAt.trim() : '';
+  if (!rawValue) {
+    return 'Last updated: unavailable';
+  }
+
+  // Keep parsing logic lightweight and runtime-safe for Expo/Hermes.
+  const isoMatch = rawValue.match(
+    /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?$/
+  );
+  if (isoMatch) {
+    const [, year, month, day, hour, minute] = isoMatch;
+    return `Last updated: ${day}/${month}/${year} ${hour}:${minute}`;
+  }
+
+  return `Last updated: ${rawValue}`;
+};
+
 export default function SpotDetail({ spot, onClose, onNavigate, onReportIssue }: SpotDetailProps) {
   return (
     <View style={styles.detailContainer}>
@@ -23,7 +41,7 @@ export default function SpotDetail({ spot, onClose, onNavigate, onReportIssue }:
         <View style={[styles.detailBadge, { backgroundColor: spot.color }]}>
           <Text style={styles.detailBadgeText}>{spot.availability}</Text>
         </View>
-        <Text style={styles.detailInfoText}>Parking Available at 9:40</Text>
+        <Text style={styles.detailInfoText}>{formatLastUpdated(spot.updatedAt)}</Text>
       </View>
 
       <TouchableOpacity style={styles.navigateButton} onPress={onNavigate}>

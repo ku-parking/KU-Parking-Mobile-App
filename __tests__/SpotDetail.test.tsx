@@ -10,6 +10,7 @@ const mockSpot: ParkingSpot = {
   longitude: 100.570707,
   availability: 40,
   capacity: 40,
+  updatedAt: '2026-03-21T08:10:00Z',
   color: '#2ecc71',
 };
 
@@ -19,6 +20,25 @@ describe('SpotDetail Component', () => {
       <SpotDetail spot={mockSpot} onClose={jest.fn()} onNavigate={jest.fn()} onReportIssue={jest.fn()} />
     );
     expect(getByText('Sc KU Food Court')).toBeTruthy();
+  });
+
+  it('renders unavailable last updated text when updatedAt is missing', () => {
+    const { getByText } = render(
+      <SpotDetail
+        spot={{ ...mockSpot, updatedAt: undefined }}
+        onClose={jest.fn()}
+        onNavigate={jest.fn()}
+        onReportIssue={jest.fn()}
+      />
+    );
+    expect(getByText('Last updated: unavailable')).toBeTruthy();
+  });
+
+  it('renders formatted last updated text when updatedAt is provided', () => {
+    const { getByText } = render(
+      <SpotDetail spot={mockSpot} onClose={jest.fn()} onNavigate={jest.fn()} onReportIssue={jest.fn()} />
+    );
+    expect(getByText('Last updated: 21/03/2026 08:10')).toBeTruthy();
   });
 
   it('renders the availability badge with the correct number', () => {
