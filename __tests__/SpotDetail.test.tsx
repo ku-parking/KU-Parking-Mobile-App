@@ -38,7 +38,19 @@ describe('SpotDetail Component', () => {
     const { getByText } = render(
       <SpotDetail spot={mockSpot} onClose={jest.fn()} onNavigate={jest.fn()} onReportIssue={jest.fn()} />
     );
-    expect(getByText('Last updated: 21/03/2026 08:10')).toBeTruthy();
+    expect(getByText('Last updated: 21/03/2026 15:10 ICT')).toBeTruthy();
+  });
+
+  it('converts Redis naive timestamp to Bangkok time', () => {
+    const { getByText } = render(
+      <SpotDetail
+        spot={{ ...mockSpot, updatedAt: '2026-03-21T09:28:23.165111' }}
+        onClose={jest.fn()}
+        onNavigate={jest.fn()}
+        onReportIssue={jest.fn()}
+      />
+    );
+    expect(getByText('Last updated: 21/03/2026 16:28 ICT')).toBeTruthy();
   });
 
   it('renders the availability badge with the correct number', () => {
