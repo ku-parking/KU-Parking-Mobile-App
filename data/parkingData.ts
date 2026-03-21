@@ -7,6 +7,7 @@ export type ParkingSpot = {
     longitude: number;
     availability: number;
     capacity: number;
+    updatedAt?: string;
     color: string;
 };
 
@@ -50,7 +51,9 @@ export const parkingSpots: ParkingSpot[] = rawSpots.map(spot => ({
     color: getSpotColor(spot.availability, spot.capacity)
 }));
 
-type ParkingSpotApiResponse = Omit<ParkingSpot, "color">;
+type ParkingSpotApiResponse = Omit<ParkingSpot, "color" | "updatedAt"> & {
+    updated_at?: string;
+};
 
 type CreateIssueReportPayload = {
     parkingSpotId: number;
@@ -67,7 +70,13 @@ export const fetchParkingSpots = async (): Promise<ParkingSpot[]> => {
 
     const data = (await response.json()) as ParkingSpotApiResponse[];
     return data.map((spot) => ({
-        ...spot,
+        id: spot.id,
+        name: spot.name,
+        latitude: spot.latitude,
+        longitude: spot.longitude,
+        availability: spot.availability,
+        capacity: spot.capacity,
+        updatedAt: spot.updated_at,
         color: getSpotColor(spot.availability, spot.capacity),
     }));
 };
