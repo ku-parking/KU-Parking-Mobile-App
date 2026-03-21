@@ -52,6 +52,12 @@ export const parkingSpots: ParkingSpot[] = rawSpots.map(spot => ({
 
 type ParkingSpotApiResponse = Omit<ParkingSpot, "color">;
 
+type CreateIssueReportPayload = {
+    parkingSpotId: number;
+    reason?: string;
+    notes?: string;
+};
+
 export const fetchParkingSpots = async (): Promise<ParkingSpot[]> => {
     const endpoint = `${Config.apiBaseUrl}/parking-spots`;
     const response = await fetch(endpoint);
@@ -64,4 +70,24 @@ export const fetchParkingSpots = async (): Promise<ParkingSpot[]> => {
         ...spot,
         color: getSpotColor(spot.availability, spot.capacity),
     }));
+};
+
+export const createIssueReport = async (payload: CreateIssueReportPayload): Promise<void> => {
+    const endpoint = `${Config.apiBaseUrl}/issue-reports`;
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            parking_spot_id: payload.parkingSpotId,
+            reason: payload.reason?.trim() ?? "",
+            notes: payload.notes?.trim() ?? "",
+        }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Failed to submit issue report to ${endpoint}: ${response.status}`);
+    }
 };
