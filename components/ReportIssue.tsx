@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
-import { ParkingSpot } from '../data/parkingData';
+import { createIssueReport, ParkingSpot } from '../data/parkingData';
 
 const REPORT_REASONS = [
   "Availability does not match",
@@ -18,17 +18,34 @@ interface ReportIssueProps {
 export default function ReportIssue({ spot, onCancel, onSubmitSuccess }: ReportIssueProps) {
   const [reportReason, setReportReason] = useState<string | null>(null);
   const [reportNotes, setReportNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitReport = useCallback(() => {
+  const handleSubmitReport = useCallback(async () => {
     if (!reportReason && !reportNotes) {
       Alert.alert("Error", "Please select a reason or provide some notes.");
       return;
     }
-    // Simulate API call
-    Alert.alert("Success", "Thank you for your report! We will review the information.", [
-      { text: "OK", onPress: onSubmitSuccess }
-    ]);
-  }, [reportReason, reportNotes, onSubmitSuccess]);
+
+    setIsSubmitting(true);
+    try {
+      await createIssueReport({
+        parkingSpotId: spot.id,
+        reason: reportReason ?? undefined,
+        notes: reportNotes,
+      });
+
+      Alert.alert("Success", "Thank you for your report! We will review the information.", [
+        { text: "OK", onPress: onSubmitSuccess }
+      ]);
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : "Unable to submit report. Please try again.";
+      Alert.alert("Error", message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [reportReason, reportNotes, onSubmitSuccess, spot.id]);
 
   return (
     <View style={styles.reportContainer}>
@@ -47,6 +64,7 @@ export default function ReportIssue({ spot, onCancel, onSubmitSuccess }: ReportI
           style={styles.radioContainer}
           onPress={() => setReportReason(reason)}
           activeOpacity={0.7}
+          disabled={isSubmitting}
         >
           <View style={[styles.outerRadio, reportReason === reason && styles.outerRadioSelected]}>
             {reportReason === reason && <View style={styles.innerRadio} />}
@@ -62,10 +80,19 @@ export default function ReportIssue({ spot, onCancel, onSubmitSuccess }: ReportI
         onChangeText={setReportNotes}
         multiline
         placeholderTextColor="#888"
+        editable={!isSubmitting}
       />
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmitReport}>
-        <Text style={styles.submitButtonText}>Submit Report</Text>
+      <TouchableOpacity
+        style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+        onPress={() => {
+          void handleSubmitReport();
+        }}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.submitButtonText}>
+          {isSubmitting ? "Submitting..." : "Submit Report"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -146,6 +173,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
   },
   submitButtonText: {
     fontSize: 16,
