@@ -49,3 +49,19 @@ export const parkingSpots: ParkingSpot[] = rawSpots.map(spot => ({
     ...spot,
     color: getSpotColor(spot.availability, spot.capacity)
 }));
+
+type ParkingSpotApiResponse = Omit<ParkingSpot, "color">;
+
+export const fetchParkingSpots = async (): Promise<ParkingSpot[]> => {
+    const endpoint = `${Config.apiBaseUrl}/parking-spots`;
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch parking spots from ${endpoint}: ${response.status}`);
+    }
+
+    const data = (await response.json()) as ParkingSpotApiResponse[];
+    return data.map((spot) => ({
+        ...spot,
+        color: getSpotColor(spot.availability, spot.capacity),
+    }));
+};
